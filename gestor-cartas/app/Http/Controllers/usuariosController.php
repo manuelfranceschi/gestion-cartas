@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Validator;
 class usuariosController extends Controller
 {
     //Registrar usuario
-    public function register(Request $req) {
+    public function registrar(Request $req) {
         $response = ['status'=> 1, 'msg'=>''];
         //Pedir la informacion del request
         $JsonData = $req->getContent();
@@ -46,43 +46,30 @@ class usuariosController extends Controller
                         return response()->json($response);
                     }
 
+    //2. Login mediante email y contraseña.
     public function login(Request $req){
         $response = ['status'=> 1, 'msg'=>''];
         $JsonData = $req->getContent();
-
         $Data = json_decode($JsonData);
         $user = new User();
-          try {
-              $validator = Validator::make(json_decode($JsonData, true),
-              ['nombre_usuario' => 'required|unique:usuarios| string',
-              'email_usuario' => 'required|unique:usuarios| string | email:rfc,dns',
-              'password_usuario' => 'required',
-              'rol_usuario' => 'required|in:Particular,Profesional,Administrador']);
+        $user = User::where('email', $Data->email_usuario)->first();
 
-                //Crear usuario
-                if($validator->fails()){
-                  $response = ['status'=>0, 'msg'=>$validator->errors()->first()];}
-                  else {
-                      $user->nombre_usuario = $Data->nombre_usuario;
-                      $user->email_usuario = $Data->email_usuario;
-                      if (preg_match("/(?=.[a-z])(?=.[A-Z])(?=.[0-9])(?=.[^A-Za-z0-9]).{6,}/",$Data->password_usuario)){
-                        $user->password_usuario = Hash::make($Data->password_usuario);
-                      } else {
-                        $response["msg"] = "Contraseña debil.";
-                        return response()->json($response);
-                      }
-                      $user->rol_usuario = $Data->rol_usuario;
-                      $user->save();
-                      $response['msg'] = "Se ha guardado el usuario correctamente. ";
-                        $response['status'] = 1;}
-                    } catch (\Exception $error) {
-                        $response['msg'] = "Ha ocurrido un error al añadir : ".$error->getMessage();
-                        $response['status'] = 0;}
-                        return response()->json($response);
-                    }
+        try {
+            if(Hash::check($Data->password_usuario, $user->password_usuario)) {
+                $user->api_token = Hash::make($user->email_usuario);
+                $user->save();
+                $response["msg"] = "Sesión iniciada.";
+                $response["token"] = $user->api_token;
+            }else{
+                $response["msg"] = "Sesión incorrecta.";
+            }
+        } catch (\Throwable $th) {
+            $response["msg"] = "introduce correctamente tu contraseña.";
+        }
+        return response()->json($response);
     }
 
-
+}
 
 
 
