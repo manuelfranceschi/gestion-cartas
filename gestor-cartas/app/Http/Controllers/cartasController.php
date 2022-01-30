@@ -45,8 +45,8 @@ class cartasController extends Controller
         $carta = new Carta();
         try {
             $validator = Validator::make(json_decode($JsonData, true),
-            ['nombre_carta' => 'required| string',
-            'descripcion_carta' => 'required| string']);
+            ['nombre_carta' => 'required|string',
+            'descripcion_carta' => 'required|string']);
 
             //Crear carta
             if($validator->fails()){
@@ -73,8 +73,8 @@ class cartasController extends Controller
             try {
                 $validator = Validator::make(json_decode($JsonData, true),
                 ['nombre_coleccion' => 'required|unique:colecciones| string',
-                'simbolo_coleccion' => 'required| string',
-                'fecha_alta_coleccion' => 'required | date']);
+                'simbolo_coleccion' => 'required|string',
+                'fecha_alta_coleccion' => 'required|date']);
 
                 if($validator->fails()){
                 $response = ['status'=>0, 'msg'=>$validator->errors()->first()];
@@ -100,8 +100,8 @@ class cartasController extends Controller
         $pertenencia = new Pertenencia();
         try {
             $validator = Validator::make(json_decode($JsonData, true),
-            ['id_carta' => 'required:cartas| integer',
-             'id_coleccion' => 'required:colecciones| integer']);
+            ['carta_id' => 'required:cartas|integer',
+             'coleccione_id' => 'required:colecciones|integer']);
 
             if($validator->fails()){
             $response = ['status'=>0, 'msg'=>$validator->errors()->first()];
@@ -110,6 +110,27 @@ class cartasController extends Controller
                 $pertenencia->carta_id = $Data->carta_id;
                 $pertenencia->save();
                 $response['msg'] = "Se ha creado la permanencia correctamente correctamente. ";
+                $response['status'] = 1;
+                }
+        }catch (\Exception $error) {
+            $response['msg'] = "Ha ocurrido un error al añadir : ".$error->getMessage();
+            $response['status'] = 0;
+            }
+            return response()->json($response);
+        }
+    public function verCartas(Request $req) {
+        $response = ['status'=> 1, 'msg'=>''];
+        $JsonData = $req->getContent();
+        $Data = json_decode($JsonData);
+
+        try {
+            $validator = Validator::make(json_decode($JsonData, true),
+            ['nombre_carta' => 'required|string']);
+            if($validator->fails()){
+            $response = ['status'=>0, 'msg'=>$validator->errors()->first()];
+            }else {
+                $cartas = Carta::where('nombre_carta','like','%'.$Data->nombre_carta.'%' )->get(); //Buscar nombre_carta
+                $response['msg'] = $cartas;
                 $response['status'] = 1;
                 }
         }catch (\Exception $error) {
