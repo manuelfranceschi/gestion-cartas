@@ -16,7 +16,7 @@ use App\Http\Controllers\usuariosController;
 */
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
     Route::put('registrar', [usuariosController::class, 'registrar']);
+    return $request->user();
 });
 
