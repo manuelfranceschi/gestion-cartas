@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Carta;
 use App\Models\Coleccione;
+use App\Models\Pertenencia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -91,5 +92,31 @@ class cartasController extends Controller
                 }
                 return response()->json($response);
             }
+
+    public function crearPertenencia(Request $req) {
+        $response = ['status'=> 1, 'msg'=>''];
+        $JsonData = $req->getContent();
+        $Data = json_decode($JsonData);
+        $pertenencia = new Pertenencia();
+        try {
+            $validator = Validator::make(json_decode($JsonData, true),
+            ['id_carta' => 'required:cartas| integer',
+             'id_coleccion' => 'required:colecciones| integer']);
+
+            if($validator->fails()){
+            $response = ['status'=>0, 'msg'=>$validator->errors()->first()];
+            }else {
+                $pertenencia->coleccione_id = $Data->coleccione_id;
+                $pertenencia->carta_id = $Data->carta_id;
+                $pertenencia->save();
+                $response['msg'] = "Se ha creado la permanencia correctamente correctamente. ";
+                $response['status'] = 1;
+                }
+        }catch (\Exception $error) {
+            $response['msg'] = "Ha ocurrido un error al añadir : ".$error->getMessage();
+            $response['status'] = 0;
+            }
+            return response()->json($response);
+        }
 }
 
