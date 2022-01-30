@@ -17,7 +17,7 @@ class CreateVentasTable extends Migration
             $table->id();
             $table->foreignId("carta_id")->constrained();
             $table->foreignId("usuario_id")->constrained();
-            $table->string("cantidad_cartas_venta");
+            $table->integer("cantidad_cartas_venta");
             $table->integer("precio_venta");
             $table->timestamps();
         });
