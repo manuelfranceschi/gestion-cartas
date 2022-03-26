@@ -46,7 +46,11 @@ class cartasController extends Controller
         try {
             $validator = Validator::make(json_decode($JsonData, true),
             ['nombre_carta' => 'required|string',
-            'descripcion_carta' => 'required|string']);
+            'descripcion_carta' => 'required|string',
+            'nombre_coleccion' => 'required_without:coleccion_id|string',
+            'fecha_alta_coleccion' => 'required_without:coleccion_id|date',
+            'simbolo_coleccion' => 'required_without:coleccion_id|string',
+            'coleccion_id' => 'required_without:nombre_coleccion,fecha_alta_coleccion,simbolo_coleccion|integer']);
 
             //Crear carta
             if($validator->fails()){
@@ -55,6 +59,25 @@ class cartasController extends Controller
                 $carta->nombre_carta = $Data->nombre_carta;
                 $carta->descripcion_carta = $Data->descripcion_carta;
                 $carta->save();
+
+                if(!$Data->coleccion_id) {
+                    $coleccion = new Coleccione();
+                    $coleccion->nombre_coleccion = $Data->nombre_coleccion;
+                    $coleccion->fecha_alta_coleccion = $Data->fecha_alta_coleccion;
+                    $coleccion->simbolo_coleccion = $Data->simbolo_coleccion;
+                    $coleccion->save();
+                }
+
+                $pertenencia = new Pertenencia();
+                $pertenencia->carta_id = $carta->id;
+
+                if($Data->coleccion_id) {
+                    $pertenencia->coleccione_id = $Data->coleccion_id;
+                    } else {
+                    $pertenencia->coleccione_id = $coleccion->id;
+                    }
+
+                $pertenencia->save();
                 $response['msg'] = "Se ha guardado la carta correctamente. ";
                 $response['status'] = 1;
             }
@@ -66,15 +89,16 @@ class cartasController extends Controller
     }
 
     public function crearColeccion(Request $req) {
-            $response = ['status'=> 1, 'msg'=>''];
+            $response = ['status'=> 0, 'msg'=>''];
             $JsonData = $req->getContent();
             $Data = json_decode($JsonData);
             $coleccion = new Coleccione();
             try {
                 $validator = Validator::make(json_decode($JsonData, true),
-                ['nombre_coleccion' => 'required|unique:colecciones| string',
+                ['nombre_coleccion' => 'required|unique:colecciones|string',
                 'simbolo_coleccion' => 'required|string',
-                'fecha_alta_coleccion' => 'required|date']);
+                'fecha_alta_coleccion' => 'required|date',
+                'carta_id' => 'required|exists:cartas,id']);
 
                 if($validator->fails()){
                 $response = ['status'=>0, 'msg'=>$validator->errors()->first()];
@@ -83,6 +107,10 @@ class cartasController extends Controller
                     $coleccion->simbolo_coleccion = $Data->simbolo_coleccion;
                     $coleccion->fecha_alta_coleccion = $Data->fecha_alta_coleccion;
                     $coleccion->save();
+                    $pertenencia = new Pertenencia();
+                    $pertenencia->carta_id = $Data->carta_id;
+                    $pertenencia->coleccione_id = $coleccion->id;
+                    $pertenencia->save();
                     $response['msg'] = "Se ha guardado la coleccion correctamente. ";
                     $response['status'] = 1;
                     }
@@ -94,13 +122,13 @@ class cartasController extends Controller
             }
 
     public function crearPertenencia(Request $req) {
-        $response = ['status'=> 1, 'msg'=>''];
+        $response = ['status'=> 0, 'msg'=>''];
         $JsonData = $req->getContent();
         $Data = json_decode($JsonData);
         $pertenencia = new Pertenencia();
         try {
             $validator = Validator::make(json_decode($JsonData, true),
-            ['carta_id' => 'required:cartas|integer',
+            ['carta_id' => 'required:cartas|integer|exists:cartas,id',
              'coleccione_id' => 'required:colecciones|integer']);
 
             if($validator->fails()){
@@ -119,7 +147,7 @@ class cartasController extends Controller
             return response()->json($response);
         }
     public function verCartas(Request $req) {
-        $response = ['status'=> 1, 'msg'=>''];
+        $response = ['status'=> 0, 'msg'=>''];
         $JsonData = $req->getContent();
         $Data = json_decode($JsonData);
 

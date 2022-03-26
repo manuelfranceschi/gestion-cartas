@@ -40,7 +40,8 @@ class usuariosController extends Controller
                       $user->rol_usuario = $Data->rol_usuario;
                       $user->save();
                       $response['msg'] = "Se ha guardado el usuario correctamente. ";
-                        $response['status'] = 1;}
+                      $response['status'] = 1;}
+                      return response()->json($response);
                     } catch (\Exception $error) {
                         $response['msg'] = "Ha ocurrido un error al añadir : ".$error->getMessage();
                         $response['status'] = 0;}
@@ -49,7 +50,7 @@ class usuariosController extends Controller
 
     //2. Login mediante usuario y contraseña.
     public function login(Request $req){
-        $response = ['status'=> 1, 'msg'=>''];
+        $response = ['status'=> 0, 'msg'=>''];
         $JsonData = $req->getContent();
         $Data = json_decode($JsonData);
         $user = Usuario::where('nombre_usuario', $Data->nombre_usuario)->first();
@@ -57,9 +58,10 @@ class usuariosController extends Controller
         try {
             if(isset($user)){
                 if(Hash::check($Data->password_usuario, $user->password_usuario)) {
-                    $user->api_token = Hash::make($user->nombre_usuario);
+                    $user->api_token = Hash::make($user->nombre_usuario.now()); //Une el texto del nombre de usuario y la hora y fecha actual
                     $user->save();
                     $response["msg"] = "Sesión iniciada.";
+                    $response['status'] = 1;
                     $response["token"] = $user->api_token;
                 }else{
                     $response["msg"] = "Sesión incorrecta.";
@@ -76,7 +78,7 @@ class usuariosController extends Controller
     //Recuperar contraseña
 
     public function recuperarPassword(Request $req) {
-        $response = ['status'=> 1, 'msg'=>''];
+        $response = ['status'=> 0, 'msg'=>''];
         $JsonData = $req->getContent();
         $Data = json_decode($JsonData);
         $user = Usuario::where('email_usuario', $Data->email_usuario)->first();
@@ -85,6 +87,7 @@ class usuariosController extends Controller
          $password = Str::random(15);
          $user->password_usuario = Hash::make($password);
          $user->save();
+         $response['status'] = 1;
          $response['msg'] = 'Contraseña enviada';
          $response['contraseña'] = $password;
         }

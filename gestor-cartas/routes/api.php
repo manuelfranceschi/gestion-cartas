@@ -25,6 +25,7 @@ use App\Http\Controllers\cartasController;
     Route::put('registrar', [usuariosController::class, 'registrar']);
     Route::put('login', [usuariosController::class, 'login']);
     Route::put('recuperacion', [usuariosController::class, 'recuperarPassword']);
+    Route::put('verVentas', [anunciosController::class, 'verVentas']);
 
 
 Route::middleware(["usuarioAdmin"])->group(function () {
@@ -36,7 +37,7 @@ Route::middleware(["usuarioAdmin"])->group(function () {
 Route::middleware(["usuarioNoAdmin"])->group(function () {
     Route::put('crearPublicacion', [anunciosController::class, 'crearPublicacion']);
     Route::put('verCartas', [cartasController::class, 'verCartas']);
-    Route::put('verVentas', [anunciosController::class, 'verVentas']);
+
 });
 
 

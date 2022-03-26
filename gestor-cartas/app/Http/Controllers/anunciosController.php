@@ -10,13 +10,13 @@ use Illuminate\Support\Facades\DB;
 class anunciosController extends Controller
 {
    public function crearPublicacion(Request $req) {
-            $response = ['status'=> 1, 'msg'=>''];
+            $response = ['status'=> 0, 'msg'=>''];
             $JsonData = $req->getContent();
             $Data = json_decode($JsonData);
             $venta = new Venta();
             try {
                 $validator = Validator::make(json_decode($JsonData, true),
-                ['carta_id' => 'required|integer',
+                ['carta_id' => 'required|integer|exists:cartas,id',
                 'cantidad_cartas_venta' => 'required|integer ',
                 'precio_venta' => 'required|integer']);
 
@@ -29,6 +29,8 @@ class anunciosController extends Controller
                 $venta->cantidad_cartas_venta = $Data->cantidad_cartas_venta;
                 $venta->precio_venta = $Data->precio_venta;
                 $venta->save();
+                $response['msg'] = "Se ha creado la publicacion correctamente. ";
+                $response['status'] = 1;
                 }
             }catch (\Exception $error) {
                 $response['msg'] = "Ha ocurrido un error al añadir : ".$error->getMessage();
@@ -36,8 +38,9 @@ class anunciosController extends Controller
                 }
                 return response()->json($response);
             }
+
     public function verVentas(Request $req) {
-            $response = ['status'=> 1, 'msg'=>''];
+            $response = ['status'=> 0, 'msg'=>''];
             $JsonData = $req->getContent();
             $Data = json_decode($JsonData);
 
